@@ -1,39 +1,56 @@
 <template>
-  <base-card>
-    <form @submit.prevent="submitForm">
-      <div class="form-control">
-        <label for="email">E-mail Address</label>
-        <input type="email" name="email" id="email" v-model.trim="email" />
-      </div>
-      <div class="form-control">
-        <label for="password">Password</label>
-        <input
-          type="password"
-          name="password"
-          id="password"
-          v-model="password"
-        />
-      </div>
-      <p v-if="!formIsValid">
-        Please enter a valid email address and Password (Password must be
-        atleast 6 characters long.)
-      </p>
-      <base-button>{{ submitButtonCaption }}</base-button>
-      <base-button type="button" mode="flat" @click="switchAuthMode">{{
-        switchModeButtonCaption
-      }}</base-button>
-    </form>
-  </base-card>
+  <div>
+    <base-dialog
+      :show="!!error"
+      title="An error occured!"
+      @close="handleError()"
+    >
+      <p>{{ error }}</p>
+    </base-dialog>
+    <base-dialog :show="isLoading" title="Authenticating..." fixed>
+      <base-spinner></base-spinner>
+    </base-dialog>
+    <base-card>
+      <form @submit.prevent="submitForm">
+        <div class="form-control">
+          <label for="email">E-mail Address</label>
+          <input type="email" name="email" id="email" v-model.trim="email" />
+        </div>
+        <div class="form-control">
+          <label for="password">Password</label>
+          <input
+            type="password"
+            name="password"
+            id="password"
+            v-model="password"
+          />
+        </div>
+        <p v-if="!formIsValid">
+          Please enter a valid email address and Password (Password must be
+          atleast 6 characters long.)
+        </p>
+        <base-button>{{ submitButtonCaption }}</base-button>
+        <base-button type="button" mode="flat" @click="switchAuthMode">{{
+          switchModeButtonCaption
+        }}</base-button>
+      </form>
+    </base-card>
+  </div>
 </template>
 
 <script>
+import BaseDialog from '../../components/ui/BaseDialog.vue';
+import BaseSpinner from '../../components/ui/BaseSpinner.vue';
 export default {
+  components: { BaseDialog, BaseSpinner },
   data() {
     return {
       email: '',
       password: '',
       formIsValid: true,
       mode: 'login',
+      isLoading: false,
+      error: null,
     };
   },
   computed: {
@@ -53,7 +70,7 @@ export default {
     },
   },
   methods: {
-    submitForm() {
+    async submitForm() {
       if (
         this.email === '' ||
         !this.email.includes('@') ||
@@ -62,15 +79,25 @@ export default {
         this.formIsValid = false;
         return;
       }
+      this.isLoading = true;
+      const actionPayload = {
+        email: this.email,
+        password: this.password,
+      };
 
-      if (this.mode === 'login') {
-        ///
-      } else {
-        this.$store.dispatch('signup', {
-          email: this.email,
-          password: this.password,
-        });
+      try {
+        if (this.mode === 'login') {
+          await this.$store.dispatch('login', actionPayload);
+        } else {
+          await this.$store.dispatch('signup', actionPayload);
+        }
+      } catch (error) {
+        this.error =
+          error?.error?.message ||
+          'Authentication failed. Please try again later!';
       }
+
+      this.isLoading = false;
     },
     switchAuthMode() {
       if (this.mode === 'login') {
@@ -78,6 +105,9 @@ export default {
       } else {
         this.mode = 'login';
       }
+    },
+    handleError() {
+      this.error = null;
     },
   },
 };
