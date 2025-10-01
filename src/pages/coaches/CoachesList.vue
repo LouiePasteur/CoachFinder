@@ -16,8 +16,11 @@
           <base-button :link="false" mode="outline" @click="loadCoaches(true)"
             >Refresh</base-button
           >
+          <base-button link to="/auth?redirect=register" v-if="!isLoggedIn"
+            >Login to Register as Coach</base-button
+          >
           <base-button
-            v-if="!isCoach && !isLoading"
+            v-if="isLoggedIn && !isCoach && !isLoading"
             :link="true"
             to="/register"
           >
@@ -60,9 +63,10 @@ ul {
 <script>
 import CoachFilter from '../../components/coaches/CoachFilter.vue';
 import CoachItem from '../../components/coaches/CoachItem.vue';
+import BaseButton from '../../components/ui/BaseButton.vue';
 
 export default {
-  components: { CoachItem, CoachFilter },
+  components: { CoachItem, CoachFilter, BaseButton },
   created() {
     this.loadCoaches();
   },
@@ -78,6 +82,9 @@ export default {
     };
   },
   computed: {
+    isLoggedIn() {
+      return this.$store.getters.isAuthenticated;
+    },
     isCoach() {
       return this.$store.getters['coaches/isCoach'];
     },
