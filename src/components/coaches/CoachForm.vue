@@ -70,7 +70,7 @@
         There should atleast 1 Area of Expertise selected
       </p>
       <p v-if="!formIsValid">Please fix the above errors and submit again</p>
-      <base-button>Register</base-button>
+      <base-button class="action">Register</base-button>
     </div>
   </form>
 </template>
@@ -210,5 +210,9 @@ h3 {
 .invalid input,
 .invalid textarea {
   border: 1px solid red;
+}
+
+.action {
+  margin-top: 1.5rem;
 }
 </style>
